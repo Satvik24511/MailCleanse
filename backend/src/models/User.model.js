@@ -38,16 +38,15 @@ const userSchema = new mongoose.Schema({
         select: false
     },
 
-    unsubscribedCount: { // Simple counter for how many emails the user unsubscribed via your app
+    unsubscribedCount: {
         type: Number,
         default: 0
     }
 
 }, {
-    timestamps: true, // Mongoose automatically adds `createdAt` and `updatedAt` fields
+    timestamps: true,
 });
 
-// Create the Mongoose model
 const User = mongoose.model('User', userSchema);
 
 export default User;
