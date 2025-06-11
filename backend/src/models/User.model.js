@@ -41,7 +41,22 @@ const userSchema = new mongoose.Schema({
     unsubscribedCount: {
         type: Number,
         default: 0
-    }
+    },
+
+    totalServices: {
+        type: Number,
+        default: 0
+    },
+
+    services : [{
+        type : mongoose.Schema.Types.ObjectId,
+        ref: "Service"
+    }],
+
+    unreadEmails: [{
+        type: Number,
+        default: 0
+    }],
 
 }, {
     timestamps: true,
