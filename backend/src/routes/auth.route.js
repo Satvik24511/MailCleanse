@@ -1,6 +1,7 @@
 import express from "express";
 import passport from "passport";
-import { authFailure, logout } from "../controllers/auth.controller.js";
+import { authFailure, logout, check } from "../controllers/auth.controller.js";
+import { isLoggedIn } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -17,6 +18,8 @@ router.get('/google',
         prompt: 'consent'
     })
 );
+
+router.get('/check', isLoggedIn, check);
 
 router.get('/failure', authFailure);
 

@@ -28,3 +28,12 @@ export const logout = (req, res, next) => {
         });
     });
 }
+
+export const check = (req, res) => {
+  if (req.user) {
+    res.status(200).json({ authenticated: true, user: req.user });
+  } else {
+    res.status(401).json({ authenticated: false });
+  }
+}
+

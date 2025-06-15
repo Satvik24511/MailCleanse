@@ -15,6 +15,14 @@ const serviceSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    emailId: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true,
+        lowercase: true,
+        trim: true
+    },
     emailCount: {
         type: Number,
         default: 0

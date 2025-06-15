@@ -2,6 +2,8 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import dotenv from 'dotenv';
 import User from '../models/User.model.js';
+import { getGmailClient } from './gmailClient.js';
+import {getUnreadCount} from './onLogin.js';
 dotenv.config();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -28,24 +30,32 @@ async function(accessToken, refreshToken, profile, done) {
         let user = await User.findOne({ googleId: profile.id });
 
         if (!user) {
-            // Create new user
             user = await User.create({
                 googleId: profile.id,
                 displayName: profile.displayName,
-                email: profile.emails && profile.emails[0] ? profile.emails[0].value : null,
-                profilePicture: profile.photos && profile.photos[0] ? profile.photos[0].value : null,
+                email: profile.emails[0].value,
+                profilePicture: profile.photos[0].value,
                 accessToken,
                 refreshToken,
-                accessTokenExpiresAt: null
+                accessTokenExpiresAt: new Date(Date.now() + 3600000),
+                unreadEmails: 0
             });
-        } else {
-            user.accessToken = accessToken;
-            user.refreshToken = refreshToken;
-            await user.save();
         }
+
+        user.accessToken = accessToken;
+        user.refreshToken = refreshToken;
+    
+
+        const gmail = await getGmailClient(user);
+        const unreadCount = await getUnreadCount(gmail);
+        console.log('Fetched unread count:', unreadCount);
+        
+        user.unreadEmails = unreadCount;
+        await user.save();
 
         return done(null, user);
     } catch (err) {
+        console.error('Auth error:', err);
         return done(err, null);
     }
 }));

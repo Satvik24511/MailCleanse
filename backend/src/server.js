@@ -4,9 +4,9 @@ import dotenv from "dotenv";
 import passport from "passport";
 
 import "./lib/auth.js";
-
 import { isLoggedIn } from "./middleware/auth.middleware.js";
 import authRoutes from "./routes/auth.route.js";
+import mailRoutes from "./routes/mail.route.js";
 import { connectDB } from "./lib/db.js";
 
 
@@ -30,12 +30,16 @@ app.use(passport.session());
 
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/mail", mailRoutes);
 
 
 
 app.get("/", (req, res) => {
     res.send("<a href='/api/auth/google'>Login with Google</a>");
 })
+
+
+
 
 app.get('/google/callback', passport.authenticate('google', {
     failureRedirect: '/api/auth/failure',
@@ -44,11 +48,9 @@ app.get('/google/callback', passport.authenticate('google', {
 );
 
 app.get('/api/protected', isLoggedIn, (req, res) => {
-    console.log("User is authenticated:", req.user);
+    res.send("Unread Messages, " + req.user.unreadEmails.toString() + " | " + req.user.displayName + " | " + req.user.email);
 
-    res.send("This is a protected route. You must be logged in to see this.");
-})
-
+});
 
 app.listen(PORT, () => {
     console.log("Server is running on http://localhost:"+PORT);
