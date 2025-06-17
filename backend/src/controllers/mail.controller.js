@@ -17,7 +17,7 @@ export const getSubscriptions = async (req, res) => {
         const allFetchedSubscriptions = [];
         let pageToken = null;
 
-        const listQuery = 'in:inbox unsubscribe OR "unsubscribe"';
+        let listQuery = 'in:inbox unsubscribe OR "unsubscribe"';
         
         let lastScanDate = user.lastScanDate || null;
         if (lastScanDate) {
@@ -188,6 +188,7 @@ export const getSubscriptions = async (req, res) => {
         }
 
         user.lastScanDate = new Date();
+        await user.save();
 
         const updatedUser = await User.findById(user._id).populate({
             path: 'services',
@@ -212,5 +213,66 @@ export const getSubscriptions = async (req, res) => {
     } catch (error) {
         console.error('Error in getSubscriptions:', error);
         res.status(500).json({ message: 'Failed to fetch subscriptions: ' + error.message });
+    }
+};
+
+
+export const unsubscribeService = async (req, res) => {
+    const { serviceId } = req.params;
+    const user = req.user;
+
+    try {
+        const service = await Service.findOne({ _id: serviceId });
+
+        if (!service) {
+            return res.status(404).json({ message: 'Service not found.' });
+        }
+
+        if (!user.services.includes(service._id)) {
+             return res.status(403).json({ message: 'Unauthorized: Service does not belong to this user.' });
+        }
+
+        let unsubscribeAttempted = false;
+        let successMessage = '';
+        let redirectionUrl = null;
+
+        if (service.oneClickPost && service.unsubscribeUrl) {
+            console.log(`Attempting one-click unsubscribe for ${service.emailId} via POST to ${service.unsubscribeUrl}`);
+            try {
+                await axios.post(service.unsubscribeUrl, null, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded' 
+                    }
+                });
+                unsubscribeAttempted = true;
+                successMessage = 'Successfully sent one-click unsubscribe request.';
+                console.log(`One-click unsubscribe successful for ${service.emailId}`);
+            } catch (postError) {
+                console.warn(`One-click unsubscribe POST failed for ${service.emailId}:`, postError.message);
+            }
+        }
+
+        if (!unsubscribeAttempted && service.unsubscribeUrl) {
+            console.log(`Using standard unsubscribe URL for ${service.emailId}: ${service.unsubscribeUrl}`);
+            redirectionUrl = service.unsubscribeUrl;
+            successMessage = 'Please complete the unsubscribe process in the new tab.';
+            unsubscribeAttempted = true;
+        }
+
+        if (!unsubscribeAttempted) {
+            return res.status(400).json({ message: 'No valid unsubscribe method found for this service.' });
+        }
+
+        service.isUnsubscribed = true;
+        await service.save();
+
+        res.json({
+            message: successMessage,
+            redirectionUrl: redirectionUrl
+        });
+
+    } catch (error) {
+        console.error('Error in unsubscribeService:', error);
+        res.status(500).json({ message: 'Failed to unsubscribe: ' + error.message });
     }
 };
