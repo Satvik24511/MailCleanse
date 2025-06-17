@@ -14,6 +14,10 @@ if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !GOOGLE_CALLBACK_URL) {
 }
 
 export const getGmailClient = async (user) => {
+    if (!user.accessToken || !user.refreshToken) {
+        throw new Error('Missing authentication tokens');
+    }
+
     const oauth2Client = new OAuth2Client(
         GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET,
@@ -23,27 +27,23 @@ export const getGmailClient = async (user) => {
     oauth2Client.setCredentials({
         access_token: user.accessToken,
         refresh_token: user.refreshToken,
-        // Only add expiry_date if it exists
-        ...(user.accessTokenExpiresAt && {
-            expiry_date: user.accessTokenExpiresAt.getTime()
-        })
+        expiry_date: user.accessTokenExpiresAt ? user.accessTokenExpiresAt.getTime() : undefined
     });
 
     try {
-        const { credentials } = await oauth2Client.refreshAccessToken();
-        
-        if (credentials.access_token !== user.accessToken || credentials.refresh_token !== user.refreshToken) {
+        if (!user.accessTokenExpiresAt || user.accessTokenExpiresAt < new Date()) {
+            const { credentials } = await oauth2Client.refreshAccessToken();
             user.accessToken = credentials.access_token;
-            user.accessTokenExpiresAt = new Date(credentials.expiry_date);
             if (credentials.refresh_token) {
                 user.refreshToken = credentials.refresh_token;
             }
+            user.accessTokenExpiresAt = new Date(credentials.expiry_date);
             await user.save();
         }
 
         return google.gmail({ version: 'v1', auth: oauth2Client });
     } catch (error) {
-        console.error('Error refreshing access token or getting Gmail client:', error);
+        console.error('Error refreshing access token:', error);
         throw new Error('Failed to authenticate with Gmail API. Please re-authenticate.');
     }
-}
+};

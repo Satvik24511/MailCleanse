@@ -58,6 +58,11 @@ const userSchema = new mongoose.Schema({
         default: 0
     },
 
+    lastScanDate: {
+        type: Date,
+        default: null
+    },
+
 }, {
     timestamps: true,
 });

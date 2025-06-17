@@ -43,12 +43,12 @@ app.get("/", (req, res) => {
 
 app.get('/google/callback', passport.authenticate('google', {
     failureRedirect: '/api/auth/failure',
-    successRedirect: '/api/protected'
+    successRedirect: '/api/mail/subscriptions'
 })
 );
 
 app.get('/api/protected', isLoggedIn, (req, res) => {
-    res.send("Unread Messages, " + req.user.unreadEmails.toString() + " | " + req.user.displayName + " | " + req.user.email);
+    res.send("Unread Messages, " + req.user.unreadEmails.toString() + " | " + req.user.displayName + " | " + req.user.email + " |  Total services: " + req.user.totalServices);
 
 });
 

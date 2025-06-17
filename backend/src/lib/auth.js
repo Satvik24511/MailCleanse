@@ -18,6 +18,8 @@ passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
     callbackURL: "http://localhost:5000/google/callback",
+    accessType: 'offline',  // Add this line
+    prompt: 'consent',      // Add this line
     scope: [
         'profile',
         'email',
@@ -27,7 +29,7 @@ passport.use(new GoogleStrategy({
 },
 async function(accessToken, refreshToken, profile, done) {
     try {
-        let user = await User.findOne({ googleId: profile.id });
+        let user = await User.findOne({ googleId: profile.id }).select('+accessToken +refreshToken +accessTokenExpiresAt');
 
         if (!user) {
             user = await User.create({
@@ -40,11 +42,14 @@ async function(accessToken, refreshToken, profile, done) {
                 accessTokenExpiresAt: new Date(Date.now() + 3600000),
                 unreadEmails: 0
             });
+        } else {
+            user.accessToken = accessToken;
+            if (refreshToken) {
+                user.refreshToken = refreshToken;
+            }
+            user.accessTokenExpiresAt = new Date(Date.now() + 3600000);
+            await user.save();
         }
-
-        user.accessToken = accessToken;
-        user.refreshToken = refreshToken;
-    
 
         const gmail = await getGmailClient(user);
         const unreadCount = await getUnreadCount(gmail);
@@ -65,7 +70,7 @@ passport.serializeUser((user, done) => {
 });
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await User.findById(id);
+    const user = await User.findById(id).select('+accessToken +refreshToken +accessTokenExpiresAt');
     done(null, user);
   } catch (err) {
     done(err, null);
