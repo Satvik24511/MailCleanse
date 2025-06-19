@@ -16,7 +16,16 @@ const Home: NextPage = () => {
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
+  }; 
+
+  const heroTextVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0 },
   };
+
+  const handleStart = () => {
+    window.location.href = 'http://localhost:5000/api/auth/google';
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -44,12 +53,15 @@ const Home: NextPage = () => {
             flex items-center justify-center
             bg-blue-100/50
           "
-          aria-hidden="true" 
+          aria-hidden="true"
         >
+          <p className="text-gray-500 text-sm md:text-base">
+            Your Decluttering Wave Animation Goes Here
+          </p>
         </div>
 
         {/* Main Content */}
-        <h1
+        <motion.h1
           className="
             text-4xl sm:text-5xl md:text-6xl lg:text-7xl
             font-extrabold
@@ -60,11 +72,15 @@ const Home: NextPage = () => {
             leading-tight
             relative z-10
           "
+          initial="hidden"
+          animate="visible"
+          variants={heroTextVariants}
+          transition={{ duration: 0.8, delay: 0.3 }}
         >
           Reclaim Your Inbox with <span className="text-orange-500">MailCleanse</span>.
-        </h1>
+        </motion.h1>
 
-        <p
+        <motion.p
           className="
             text-lg sm:text-xl md:text-2xl
             text-gray-700
@@ -74,28 +90,40 @@ const Home: NextPage = () => {
             mx-auto
             relative z-10
           "
+          initial="hidden"
+          animate="visible"
+          variants={heroTextVariants}
+          transition={{ duration: 0.8, delay: 0.5 }}
         >
           Find Your Peace.
-        </p>
+        </motion.p>
 
-        <Button
-          className="
-            bg-orange-500
-            text-white
-            py-4 px-10
-            rounded-full
-            text-lg md:text-xl
-            font-semibold
-            cursor-pointer
-            transition-all duration-300 ease-in-out
-            shadow-lg hover:shadow-xl
-            hover:scale-105
-            hover:bg-orange-600
-            relative z-10
-          "
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={heroTextVariants}
+          transition={{ duration: 0.8, delay: 0.7 }}
         >
-          Get Started
-        </Button>
+          <Button
+            className="
+              bg-orange-500
+              text-white
+              py-10 px-20
+              rounded-full
+              text-lg md:text-xl
+              font-semibold
+              cursor-pointer
+              transition-all duration-300 ease-in-out
+              shadow-lg hover:shadow-xl
+              hover:scale-105
+              hover:bg-orange-600
+              relative z-10
+            "
+            onClick={handleStart}
+          >
+            Get Started
+          </Button>
+        </motion.div>
       </section>
 
       {/* --- What We Do Section --- */}

@@ -2,6 +2,7 @@ import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
 import passport from "passport";
+import cors from "cors";
 
 import "./lib/auth.js";
 import { isLoggedIn } from "./middleware/auth.middleware.js";
@@ -14,6 +15,12 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
+
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+})
+);
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
@@ -33,24 +40,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/mail", mailRoutes);
 
 
-
-app.get("/", (req, res) => {
-    res.send("<a href='/api/auth/google'>Login with Google</a>");
-})
-
-
-
-
 app.get('/google/callback', passport.authenticate('google', {
     failureRedirect: '/api/auth/failure',
-    successRedirect: '/api/mail/subscriptions'
+    successRedirect: 'http://localhost:3000/dashboard'
 })
 );
-
-app.get('/api/protected', isLoggedIn, (req, res) => {
-    res.send("Unread Messages, " + req.user.unreadEmails.toString() + " | " + req.user.displayName + " | " + req.user.email + " |  Total services: " + req.user.totalServices);
-
-});
 
 app.listen(PORT, () => {
     console.log("Server is running on http://localhost:"+PORT);
