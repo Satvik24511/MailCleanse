@@ -6,12 +6,6 @@ import { getGmailClient } from '../lib/gmailClient.js';
 export const getSubscriptions = async (req, res) => {
     try {
         const user = req.user;
-        console.log('User at start of getSubscriptions:', {
-            id: user._id,
-            email: user.email,
-            servicesCount: user.services?.length,
-            totalServicesCount: user.totalServices
-        });
 
         const gmail = await getGmailClient(user);
         const allFetchedSubscriptions = [];
@@ -93,7 +87,6 @@ export const getSubscriptions = async (req, res) => {
             pageToken = messagesResponse.data.nextPageToken;
 
             if (pageToken) {
-                console.log(`Fetched a batch of ${messagesBatch.length} messages. Waiting before next batch...`);
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
         } while (pageToken);
@@ -196,15 +189,6 @@ export const getSubscriptions = async (req, res) => {
         });
         
         req.user = updatedUser;
-
-        console.log('Final services count processed:', newOrUpdatedServices.length);
-        console.log('User after update (fetched from DB):', {
-            id: updatedUser._id,
-            email: updatedUser.email,
-            servicesCount: updatedUser.services?.length,
-            totalServicesCount: updatedUser.totalServices
-        });
-
         res.json({
             services: updatedUser.services,
             totalServicesCount: updatedUser.totalServices
@@ -215,7 +199,6 @@ export const getSubscriptions = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch subscriptions: ' + error.message });
     }
 };
-
 
 export const unsubscribeService = async (req, res) => {
     const { serviceId } = req.params;
@@ -237,7 +220,6 @@ export const unsubscribeService = async (req, res) => {
         let redirectionUrl = null;
 
         if (service.oneClickPost && service.unsubscribeUrl) {
-            console.log(`Attempting one-click unsubscribe for ${service.emailId} via POST to ${service.unsubscribeUrl}`);
             try {
                 await axios.post(service.unsubscribeUrl, null, {
                     headers: {
@@ -246,7 +228,6 @@ export const unsubscribeService = async (req, res) => {
                 });
                 unsubscribeAttempted = true;
                 successMessage = 'Successfully sent one-click unsubscribe request.';
-                console.log(`One-click unsubscribe successful for ${service.emailId}`);
             } catch (postError) {
                 console.warn(`One-click unsubscribe POST failed for ${service.emailId}:`, postError.message);
             }
@@ -265,6 +246,9 @@ export const unsubscribeService = async (req, res) => {
 
         service.isUnsubscribed = true;
         await service.save();
+
+        user.unsubscribedCount += 1;
+        await user.save();
 
         res.json({
             message: successMessage,
