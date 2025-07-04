@@ -1,10 +1,14 @@
 import Service from '../models/Service.model.js';
 import User from '../models/User.model.js';
 import { getGmailClient } from '../lib/gmailClient.js';
+import {connectDB} from '../lib/db.js';
+import axios from 'axios';
 
 
 export const getSubscriptions = async (req, res) => {
     try {
+        await connectDB();
+
         const user = req.user;
 
         const gmail = await getGmailClient(user);
@@ -201,6 +205,7 @@ export const getSubscriptions = async (req, res) => {
 };
 
 export const unsubscribeService = async (req, res) => {
+    await connectDB();
     const { serviceId } = req.params;
     const user = req.user;
 

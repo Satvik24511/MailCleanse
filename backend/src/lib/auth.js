@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import User from '../models/User.model.js';
 import { getGmailClient } from './gmailClient.js';
 import {getUnreadCount} from './onLogin.js';
+import { connectDB } from './db.js';
 dotenv.config();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -30,6 +31,7 @@ passport.use(new GoogleStrategy({
 },
 async function(accessToken, refreshToken, profile, done) {
     try {
+        await connectDB();
         let user = await User.findOne({ googleId: profile.id }).select('+accessToken +refreshToken +accessTokenExpiresAt');
 
         if (!user) {
@@ -71,6 +73,7 @@ passport.serializeUser((user, done) => {
 });
 passport.deserializeUser(async (id, done) => {
   try {
+    await connectDB();
     const user = await User.findById(id).select('+accessToken +refreshToken +accessTokenExpiresAt');
     done(null, user);
   } catch (err) {

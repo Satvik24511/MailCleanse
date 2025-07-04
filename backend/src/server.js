@@ -46,7 +46,10 @@ app.get('/google/callback', passport.authenticate('google', {
 })
 );
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-    connectDB();
-});
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV === 'development') {
+    app.listen(PORT, async () => {
+        console.log(`Local server running on port ${PORT}`);
+        await connectDB();
+    });
+}
+export default app;
