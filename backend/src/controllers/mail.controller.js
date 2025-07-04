@@ -247,7 +247,10 @@ export const unsubscribeService = async (req, res) => {
         service.isUnsubscribed = true;
         await service.save();
 
+        await Service.findByIdAndDelete(serviceId);
+        await User.findByIdAndUpdate(user._id, { $pull: { services: serviceId } });
         user.unsubscribedCount += 1;
+        user.totalServices -= 1;
         await user.save();
 
         res.json({
