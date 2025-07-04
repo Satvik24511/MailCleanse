@@ -6,6 +6,7 @@ import { Mail, CheckCircle, Shield, Github, Linkedin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import LandingAnimation from '@/components/LandingAnimation';
 
 const Home: NextPage = () => {
   const sectionVariants = {
@@ -48,16 +49,12 @@ const Home: NextPage = () => {
           className="
             absolute inset-0
             w-full h-full
-            opacity-40
             z-0
             flex items-center justify-center
-            bg-blue-100/50
           "
           aria-hidden="true"
         >
-          <p className="text-gray-500 text-sm md:text-base">
-            Your Decluttering Wave Animation Goes Here
-          </p>
+          <LandingAnimation />
         </div>
 
         {/* Main Content */}
