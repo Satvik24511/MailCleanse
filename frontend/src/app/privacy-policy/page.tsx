@@ -58,7 +58,7 @@ export default function PrivacyPolicyPage() {
               <strong>Basic Profile Information:</strong> Your Google ID, display name, email address, and profile picture. This is used to personalize your experience within the app and manage your account.
             </li>
             <li>
-              <strong>Email Headers:</strong> We access specific headers from your Gmail messages, including "From," "Subject," "List-Unsubscribe," and "List-Unsubscribe-Post." This information is crucial for identifying subscription emails and extracting unsubscribe links.
+              <strong>Email Headers:</strong> We access specific headers from your Gmail messages, including &quot;From,&quot; &quot;Subject,&quot; &quot;List-Unsubscribe,&quot; and &quot;List-Unsubscribe-Post.&quot; This information is crucial for identifying subscription emails and extracting unsubscribe links.
             </li>
             <li>
               <strong>Email Metadata:</strong> We collect message IDs, thread IDs, internal dates, and snippets of emails identified as subscriptions. This helps us track and organize your subscriptions.
@@ -94,11 +94,11 @@ export default function PrivacyPolicyPage() {
               <strong>Inbox Management:</strong> After a successful unsubscribe, we use the `gmail.modify` scope to mark the relevant email as read and move it to your trash, helping to tidy your inbox.
             </li>
             <li>
-              <strong>Account Management:</strong> To track your total subscriptions and the number of emails you've unsubscribed from.
+              <strong>Account Management:</strong> To track your total subscriptions and the number of emails you&lsquo;ve unsubscribed from.
             </li>
           </ul>
           <p className="leading-relaxed font-bold text-red-600">
-            {appName}'s use and transfer of information received from Google APIs to any other app will adhere to Google API Services User Data Policy, including the Limited Use requirements.
+            {appName}&lsquo;s use and transfer of information received from Google APIs to any other app will adhere to Google API Services User Data Policy, including the Limited Use requirements.
           </p>
           <p className="mt-4 leading-relaxed">
             We do not use your data for advertising, market research, or any purpose other than providing and improving the {appName} service.
@@ -135,7 +135,7 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul className="list-disc list-inside space-y-2 mb-4 pl-4">
             <li>
-              <strong>Revoke Access:</strong> You can revoke {appName}'s access to your Google account at any time through your Google Account security settings.
+              <strong>Revoke Access:</strong> You can revoke {appName}&lsquo;s access to your Google account at any time through your Google Account security settings.
             </li>
             <li>
               <strong>Delete Data:</strong> You can request the deletion of your data stored by {appName} by contacting us directly. Upon receiving your request, we will delete your account and all associated data within a reasonable timeframe.
@@ -155,7 +155,7 @@ export default function PrivacyPolicyPage() {
             Email: <a href="mailto:YOUR_SUPPORT_EMAIL@example.com" className="text-blue-600 hover:underline">satvikmittal7@gmail.com</a>
           </p>
           <p className="mt-4 text-sm text-gray-600">
-            For more information about Google's API Services User Data Policy, please visit their official documentation.
+            For more information about Google&lsquo;s API Services User Data Policy, please visit their official documentation.
           </p>
           <a
             href="https://developers.google.com/terms/api-services-user-data-policy"
