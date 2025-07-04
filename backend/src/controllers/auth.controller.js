@@ -1,5 +1,6 @@
 import User from '../models/User.model.js';
 import Service from '../models/Service.model.js'; 
+import { connectDB } from '../lib/db.js';
 
 
 export const authFailure = (req, res, next) => {
@@ -33,6 +34,8 @@ export const logout = (req, res, next) => {
 }
 
 export const check = async (req, res) => {
+  await connectDB(); 
+
   if (req.user) {
     try {
       const populatedUser = await User.findById(req.user.id).populate('services').lean();
