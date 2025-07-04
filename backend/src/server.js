@@ -17,7 +17,7 @@ const app = express();
 const PORT = process.env.PORT;
 
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true
 })
 );
@@ -42,11 +42,11 @@ app.use("/api/mail", mailRoutes);
 
 app.get('/google/callback', passport.authenticate('google', {
     failureRedirect: '/api/auth/failure',
-    successRedirect: 'http://localhost:3000/dashboard'
+    successRedirect: `${process.env.FRONTEND_URL}/dashboard`
 })
 );
 
 app.listen(PORT, () => {
-    console.log("Server is running on http://localhost:"+PORT);
+    console.log(`Server is running on http://localhost:${PORT}`);
     connectDB();
 });

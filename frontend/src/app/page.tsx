@@ -25,7 +25,7 @@ const Home: NextPage = () => {
   };
 
   const handleStart = () => {
-    window.location.href = 'http://localhost:5000/api/auth/google';
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`;
   }
 
   return (

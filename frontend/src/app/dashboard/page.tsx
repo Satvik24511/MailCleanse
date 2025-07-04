@@ -66,7 +66,7 @@ const DashboardPage: NextPage = () => {
       if (!isScanning) setLoading(true);
       setError(null);
 
-      const res = await fetch('http://localhost:5000/api/auth/check', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/check`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -102,7 +102,7 @@ const DashboardPage: NextPage = () => {
   const handleScanServices = async () => {
     setIsScanning(true);
     try {
-      const res = await fetch('http://localhost:5000/api/mail/subscriptions', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/mail/subscriptions`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -125,7 +125,7 @@ const DashboardPage: NextPage = () => {
   const handleUnsubscribe = async (serviceId: string) => {
     setIsUnsubscribing(serviceId);
     try {
-      const res = await fetch(`http://localhost:5000/api/mail/unsubscribe/${serviceId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/mail/unsubscribe/${serviceId}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -517,7 +517,7 @@ const DashboardPage: NextPage = () => {
       >
         <Button
           onClick={() => {
-            window.location.href = 'http://localhost:5000/api/auth/logout';
+            window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`;
           }}
           className="bg-gray-600 hover:bg-gray-700 text-white py-3 px-8 rounded-full shadow-md text-lg font-bold flex items-center justify-center mx-auto"
         >
