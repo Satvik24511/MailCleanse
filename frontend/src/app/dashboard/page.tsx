@@ -86,7 +86,7 @@ const DashboardPage: NextPage = () => {
           if (errorData.message) {
             errorText = errorData.message;
           }
-        } catch (parseError) {
+        } catch {
           errorText = await res.text();
         }
         throw new Error(errorText);
@@ -94,9 +94,13 @@ const DashboardPage: NextPage = () => {
 
       const data = await res.json();
       setUser(data.user);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch user:', err);
-      setError(`Failed to load user data: ${err.message}`);
+      setError(
+        `Failed to load user data: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
     } finally {
       if (!isScanning) setLoading(false);
     }
@@ -118,9 +122,11 @@ const DashboardPage: NextPage = () => {
 
       await getUser();
       setCurrentPage(1);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Scan services failed:', err);
-      setError(`Scan failed: ${err.message}`);
+      setError(
+        `Scan failed: ${err instanceof Error ? err.message : String(err)}`
+      );
     } finally {
       setIsScanning(false);
     }
@@ -158,9 +164,11 @@ const DashboardPage: NextPage = () => {
         return { ...prevUser, services: updatedServices, unsubscribedCount: newUnsubscribedCount };
       });
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Unsubscribe failed:', err);
-      setError(`Unsubscribe failed: ${err.message}`);
+      setError(
+        `Unsubscribe failed: ${err instanceof Error ? err.message : String(err)}`
+      );
     } finally {
       setIsUnsubscribing(null);
     }

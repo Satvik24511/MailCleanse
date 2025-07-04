@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, Mail, Zap, Inbox, Filter, Info } from 'lucide-react';
+import { Loader2, Zap, Inbox, Filter, Info } from 'lucide-react'; 
 
 interface ScanLoadingOverlayProps {
   isFirstScan: boolean;
@@ -54,7 +54,7 @@ const ScanLoadingOverlay: React.FC<ScanLoadingOverlayProps> = ({ isFirstScan }) 
               First-Time Scan in Progress!
             </h2>
             <p className="text-lg text-gray-600 mb-6">
-              This initial scan can take a little longer as we're delving deep into your inbox to discover all your subscriptions.
+              This initial scan can take a little longer as we&apos;re delving deep into your inbox to discover all your subscriptions.
               Hang tight, the magic is happening!
             </p>
           </>
@@ -64,7 +64,7 @@ const ScanLoadingOverlay: React.FC<ScanLoadingOverlayProps> = ({ isFirstScan }) 
               Scanning Your Services...
             </h2>
             <p className="text-lg text-gray-600 mb-6">
-              We're quickly updating your subscription list. Thanks for your patience!
+              We&apos;re quickly updating your subscription list. Thanks for your patience!
             </p>
           </>
         )}
