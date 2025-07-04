@@ -69,13 +69,21 @@ async function(accessToken, refreshToken, profile, done) {
 }));
 
 passport.serializeUser((user, done) => {
+    console.log('Serializing user:', user.id);
   done(null, user.id);
 });
 passport.deserializeUser(async (id, done) => {
   try {
     await connectDB();
+    console.log('Deserializing user with ID:', id);
     const user = await User.findById(id).select('+accessToken +refreshToken +accessTokenExpiresAt');
-    done(null, user);
+    if (user) {
+        console.log("Deserialized user:", user.email);
+        done(null, user);
+    } else {
+        console.log("User not found during deserialization for ID:", id);
+        done(null, false);
+    }
   } catch (err) {
     done(err, null);
   }
