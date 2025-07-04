@@ -6,24 +6,36 @@ import axios from 'axios';
 
 
 export const getSubscriptions = async (req, res) => {
+    const startTime = Date.now(); 
+
     try {
         await connectDB();
 
-        const user = req.user;
+        const user = req.user; 
+        if (!user) {
+            return res.status(401).json({ message: 'User not authenticated.' });
+        }
 
         const gmail = await getGmailClient(user);
         const allFetchedSubscriptions = [];
         let pageToken = null;
 
         let listQuery = 'in:inbox unsubscribe OR "unsubscribe"';
-        
-        let lastScanDate = user.lastScanDate || null;
-        if (lastScanDate) {
-            listQuery += ` after:${Math.floor(lastScanDate.getTime() / 1000)}`;
+
+        if (user.lastScanDate) { 
+            listQuery += ` after:${Math.floor(user.lastScanDate.getTime() / 1000)}`;
         }
 
+        let pagesProcessed = 0;
+        const maxPagesPerInvocation = 20;
 
         do {
+            const currentTime = Date.now();
+            if ((currentTime - startTime) > MAX_SCAN_DURATION_MS) {
+                console.warn(`Scan for user ${user.email} timed out after processing ${pagesProcessed} pages.`);
+                break;
+            }
+
             const messagesResponse = await gmail.users.messages.list({
                 userId: 'me',
                 q: listQuery,
@@ -33,68 +45,80 @@ export const getSubscriptions = async (req, res) => {
 
             const messagesBatch = messagesResponse.data.messages || [];
 
-            if (messagesBatch.length > 0) {
-                const messagePromises = messagesBatch.map(msgSummary =>
-                    gmail.users.messages.get({
-                        userId: 'me',
-                        id: msgSummary.id,
-                        format: 'full'
-                    })
-                );
+            if (messagesBatch.length === 0) {
+                console.log(`No more messages found for user ${user.email}.`);
+                pageToken = null; 
+                break;
+            }
 
-                const fullMessages = await Promise.all(messagePromises);
+            const messagePromises = messagesBatch.map(msgSummary =>
+                gmail.users.messages.get({
+                    userId: 'me',
+                    id: msgSummary.id,
+                    format: 'full' 
+                })
+            );
 
-                for (const fullMessageResponse of fullMessages) {
-                    try {
-                        const fullMessage = fullMessageResponse.data;
-                        const headers = fullMessage.payload.headers;
+            const fullMessages = await Promise.all(messagePromises); 
 
-                        let unsubscribeUrl = null;
-                        let oneClickPost = false;
-                        let sender = 'Unknown Sender';
-                        let subject = 'No Subject';
+            for (const fullMessageResponse of fullMessages) {
+                try {
+                    const fullMessage = fullMessageResponse.data;
+                    const headers = fullMessage.payload.headers;
 
-                        for (const header of headers) {
-                            const headerName = header.name.toLowerCase();
-                            if (headerName === 'list-unsubscribe') {
-                                const urls = header.value.match(/<(https?:\/\/[^>]+)>/g);
+                    let unsubscribeUrl = null;
+                    let unsubscribeMailto = null;
+                    let oneClickPost = false;
+                    let sender = 'Unknown Sender';
+                    let subject = 'No Subject';
 
-                                if (urls && urls.length > 0) {
-                                    unsubscribeUrl = urls[0].slice(1, -1); 
-                                }
-                            } else if (headerName === 'list-unsubscribe-post' && header.value.toLowerCase() === 'list-unsubscribe=one-click') {
-                                oneClickPost = true;
-                            } else if (headerName === 'from') {
-                                sender = header.value;
-                            } else if (headerName === 'subject') {
-                                subject = header.value;
+                    for (const header of headers) {
+                        const headerName = header.name.toLowerCase();
+                        if (headerName === 'list-unsubscribe') {
+                            const urls = header.value.match(/<(https?:\/\/[^>]+)>/g);
+                            const mailtos = header.value.match(/<(mailto:[^>]+)>/g);
+
+                            if (urls && urls.length > 0) {
+                                unsubscribeUrl = urls[0].slice(1, -1);
                             }
+                            if (mailtos && mailtos.length > 0) {
+                                unsubscribeMailto = mailtos[0].slice(1, -1);
+                            }
+                        } else if (headerName === 'list-unsubscribe-post' && header.value.toLowerCase() === 'list-unsubscribe=one-click') {
+                            oneClickPost = true;
+                        } else if (headerName === 'from') {
+                            sender = header.value;
+                        } else if (headerName === 'subject') {
+                            subject = header.value;
                         }
-
-                        if (unsubscribeUrl) {
-                            allFetchedSubscriptions.push({
-                                messageId: fullMessage.id,
-                                threadId: fullMessage.threadId,
-                                sender: sender,
-                                subject: subject,
-                                unsubscribeUrl: unsubscribeUrl,
-                                oneClickPost: oneClickPost,
-                                date: parseInt(fullMessage.internalDate),
-                                snippet: fullMessage.snippet || ''
-                            });
-                        }
-                    } catch (msgError) {
-                        console.warn(`Error processing full message details:`, msgError.message);
                     }
+
+                    if (unsubscribeUrl || unsubscribeMailto) {
+                        allFetchedSubscriptions.push({
+                            messageId: fullMessage.id,
+                            threadId: fullMessage.threadId,
+                            sender: sender,
+                            subject: subject,
+                            unsubscribeUrl: unsubscribeUrl,
+                            unsubscribeMailto: unsubscribeMailto,
+                            oneClickPost: oneClickPost,
+                            date: parseInt(fullMessage.internalDate),
+                            snippet: fullMessage.snippet || ''
+                        });
+                    }
+                } catch (msgError) {
+                    console.warn(`Error processing full message details (ID: ${fullMessageResponse.data?.id}):`, msgError.message);
                 }
             }
+
             pageToken = messagesResponse.data.nextPageToken;
+            pagesProcessed++;
 
             if (pageToken) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
-        } while (pageToken);
 
+        } while (pageToken);
 
         const servicesDataMap = new Map();
 
@@ -110,6 +134,7 @@ export const getSubscriptions = async (req, res) => {
                     latestEmail: sub,
                     allRecentEmailsForSender: [sub],
                     unsubscribeUrl: sub.unsubscribeUrl,
+                    unsubscribeMailto: sub.unsubscribeMailto,
                     oneClickPost: sub.oneClickPost,
                     domain: (emailId.includes('@') ? emailId.split('@')[1] : null)
                 });
@@ -127,31 +152,32 @@ export const getSubscriptions = async (req, res) => {
             }
         }
 
-        const currentServiceIds = new Set(user.services.map(s => s.toString()));
-        let totalServicesAdded = 0;
+        let totalServicesAddedInThisRun = 0;
+        const batchServiceUpdates = [];
 
-        const updatedServicesPromises = Array.from(servicesDataMap.entries()).map(async ([emailId, data]) => {
-            try {
-                const senderName = data.latestEmail.sender.split('<')[0].trim() || emailId;
-                const domain = data.domain;
+        for (const [emailId, data] of servicesDataMap.entries()) {
+            const senderName = data.latestEmail.sender.split('<')[0].trim() || emailId;
+            const domain = data.domain;
 
-                const recentEmails = data.allRecentEmailsForSender
-                    .sort((a, b) => b.date - a.date)
-                    .slice(0, 5)
-                    .map(sub => ({
-                        subject: sub.subject,
-                        date: new Date(sub.date),
-                        snippet: sub.snippet || ''
-                    }));
+            const recentEmails = data.allRecentEmailsForSender
+                .sort((a, b) => b.date - a.date)
+                .slice(0, 5) 
+                .map(sub => ({
+                    messageId: sub.messageId,
+                    subject: sub.subject,
+                    date: new Date(sub.date),
+                    snippet: sub.snippet || ''
+                }));
 
-                const service = await Service.findOneAndUpdate(
+            batchServiceUpdates.push(
+                Service.findOneAndUpdate(
                     { emailId: emailId },
                     {
                         name: senderName,
                         description: `Subscription service from ${emailId}`,
                         iconUrl: domain ? `https://www.google.com/s2/favicons?domain=${domain}` : null,
                         domain: domain,
-                        emailCount: data.allRecentEmailsForSender.length,
+                        $inc: { emailCount: data.allRecentEmailsForSender.length },
                         lastEmailSubject: data.latestEmail.subject,
                         lastEmailDate: new Date(data.latestEmail.date),
                         recentEmails: recentEmails,
@@ -160,42 +186,43 @@ export const getSubscriptions = async (req, res) => {
                         oneClickPost: data.oneClickPost,
                     },
                     {
-                        upsert: true,
-                        new: true,
-                        setDefaultsOnInsert: true
+                        upsert: true, 
+                        new: true,  
+                        setDefaultsOnInsert: true 
                     }
-                );
-
-                if (service && !currentServiceIds.has(service._id.toString())) {
-                    user.services.push(service._id);
-                    totalServicesAdded += 1;
-                }
-                return service;
-            } catch (error) {
-                console.error('Error creating/updating service for', emailId, ':', error);
-                return null;
-            }
-        });
-
-        const newOrUpdatedServices = (await Promise.all(updatedServicesPromises)).filter(s => s !== null);
-
-        if (totalServicesAdded > 0) {
-            user.totalServices = (user.totalServices || 0) + totalServicesAdded;
-            await user.save();
+                )
+            );
         }
 
-        user.lastScanDate = new Date();
-        await user.save();
+        const newOrUpdatedServices = (await Promise.all(batchServiceUpdates)).filter(s => s !== null);
+
+        const userServicesToAdd = [];
+        for (const service of newOrUpdatedServices) {
+            if (service && !user.services.includes(service._id)) { 
+                 userServicesToAdd.push(service._id);
+                totalServicesAddedInThisRun += 1;
+            }
+        }
+
+        if (userServicesToAdd.length > 0) {
+            user.services.push(...userServicesToAdd);
+            user.totalServices = (user.totalServices || 0) + totalServicesAddedInThisRun;
+        }
+
+        user.lastScanDate = new Date(); 
+
+        await user.save(); 
 
         const updatedUser = await User.findById(user._id).populate({
             path: 'services',
             options: { sort: { lastEmailDate: -1 } }
         });
-        
-        req.user = updatedUser;
+
+        req.user = updatedUser; 
+
         res.json({
             services: updatedUser.services,
-            totalServicesCount: updatedUser.totalServices
+            totalServicesCount: updatedUser.totalServices,
         });
 
     } catch (error) {
@@ -203,6 +230,7 @@ export const getSubscriptions = async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch subscriptions: ' + error.message });
     }
 };
+
 
 export const unsubscribeService = async (req, res) => {
     await connectDB();
