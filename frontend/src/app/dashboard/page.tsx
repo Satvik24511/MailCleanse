@@ -1,13 +1,15 @@
 'use client';
 
 import type { NextPage } from 'next';
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, CheckCircle, Shield, History, EyeOff, XCircle, Clock, CalendarDays, Rocket, Info, ChevronDown, Loader2, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Mail, CheckCircle, Shield, History, EyeOff, XCircle, Clock, CalendarDays, Rocket, Info, Loader2, LogOut, ChevronLeft, ChevronRight
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import {Accordion, AccordionItem, AccordionTrigger, AccordionContent} from '@/components/ui/accordion';
+import { Card, CardTitle, CardContent } from '@/components/ui/card';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import ScanLoadingOverlay from '@/components/ScanLoading';
 
 type RecentEmail = {
@@ -46,7 +48,7 @@ type User = {
   totalServices: number;
   unreadEmails: number;
   services: Service[];
-  lastScanDate: string;
+  lastScanDate: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -66,7 +68,8 @@ const DashboardPage: NextPage = () => {
       if (!isScanning) setLoading(true);
       setError(null);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/check`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+      const res = await fetch(`${backendUrl}/api/auth/check`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -102,7 +105,8 @@ const DashboardPage: NextPage = () => {
   const handleScanServices = async () => {
     setIsScanning(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/mail/subscriptions`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+      const res = await fetch(`${backendUrl}/api/mail/subscriptions`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -125,7 +129,8 @@ const DashboardPage: NextPage = () => {
   const handleUnsubscribe = async (serviceId: string) => {
     setIsUnsubscribing(serviceId);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/mail/unsubscribe/${serviceId}`, {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+      const res = await fetch(`${backendUrl}/api/mail/unsubscribe/${serviceId}`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -161,9 +166,9 @@ const DashboardPage: NextPage = () => {
     }
   };
 
-
   useEffect(() => {
     getUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sortedServices = useMemo(() => {
@@ -178,7 +183,10 @@ const DashboardPage: NextPage = () => {
     });
   }, [user]);
 
-  const isFirstScan = useMemo(() => user?.lastScanDate === null || user?.lastScanDate === undefined, [user]);
+  const isFirstScan = useMemo(
+    () => user?.lastScanDate === null || user?.lastScanDate === undefined,
+    [user]
+  );
 
   const totalPages = Math.ceil(sortedServices.length / servicesPerPage);
   const indexOfLastService = currentPage * servicesPerPage;
@@ -198,7 +206,6 @@ const DashboardPage: NextPage = () => {
       setCurrentPage(currentPage - 1);
     }
   };
-
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -365,11 +372,12 @@ const DashboardPage: NextPage = () => {
                       <div className="flex items-center space-x-4 flex-grow text-left">
                         {/* Service Icon */}
                         {service.iconUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img
                             src={service.iconUrl}
                             alt={service.name}
                             className="w-12 h-12 rounded-full object-cover border-2 border-orange-200 shadow-md"
-                            onError={(e) => { e.currentTarget.src = `https://placehold.co/48x48/f3f4f6/6b7280?text=${service.name ? service.name.charAt(0).toUpperCase() : '?'}`; }}
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = `https://placehold.co/48x48/f3f4f6/6b7280?text=${service.name ? service.name.charAt(0).toUpperCase() : '?'}`; }}
                           />
                         ) : (
                           <div className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-full text-xl font-bold text-blue-800 border-2 border-blue-200 shadow-md">
@@ -504,7 +512,7 @@ const DashboardPage: NextPage = () => {
             )}
           </>
         ) : (
-          <p className="text-gray-600 text-center py-8 text-xl">No services found. Click "Scan Services" to get started!</p>
+          <p className="text-gray-600 text-center py-8 text-xl">No services found. Click &quot;Scan Services&quot; to get started!</p>
         )}
       </motion.div>
 
@@ -517,7 +525,8 @@ const DashboardPage: NextPage = () => {
       >
         <Button
           onClick={() => {
-            window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`;
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+            window.location.href = `${backendUrl}/api/auth/logout`;
           }}
           className="bg-gray-600 hover:bg-gray-700 text-white py-3 px-8 rounded-full shadow-md text-lg font-bold flex items-center justify-center mx-auto"
         >

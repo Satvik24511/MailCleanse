@@ -3,9 +3,7 @@
 import React, { useEffect, useRef, useLayoutEffect } from 'react';
 import gsap from 'gsap';
 
-interface LandingAnimationProps {}
-
-const LandingAnimation: React.FC<LandingAnimationProps> = () => {
+const LandingAnimation: React.FC = () => {
   const animationContainerRef = useRef<HTMLDivElement>(null);
   const emailRefs = useRef<HTMLDivElement[]>([]);
   const cleanEmailRefs = useRef<HTMLDivElement[]>([]);
@@ -58,7 +56,7 @@ const LandingAnimation: React.FC<LandingAnimationProps> = () => {
 
 
   useEffect(() => {
-    let ctx = gsap.context(() => {
+    const ctx = gsap.context(() => {
         const tl = gsap.timeline({ repeat: -1, yoyo: false, delay: 1 });
         const containerRect = animationContainerRef.current?.getBoundingClientRect();
         const centerX = containerRect ? containerRect.width / 2 : window.innerWidth / 2;

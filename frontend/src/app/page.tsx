@@ -241,7 +241,7 @@ const Home: NextPage = () => {
                 </CardHeader>
                 <CardContent className="pt-2">
                   <p className="text-gray-700 leading-relaxed text-sm">
-                    This permission allows MailCleanse to read crucial email headers like "From", "Subject", and the "List-Unsubscribe" header which contains unsubscribe links. We do not access your email body content or attachments.
+                    This permission allows MailCleanse to read crucial email headers like &quot;From&quot;, &quot;Subject&quot;, and the &quot;List-Unsubscribe&quot; header which contains unsubscribe links. We do not access your email body content or attachments.
                   </p>
                 </CardContent>
               </Card>
@@ -257,7 +257,7 @@ const Home: NextPage = () => {
                 </CardHeader>
                 <CardContent className="pt-2">
                   <p className="text-gray-700 leading-relaxed text-sm">
-                    After a successful unsubscribe attempt, we use this to mark the original subscription email as "read" and move it to your trash, helping you keep your inbox tidy.
+                    After a successful unsubscribe attempt, we use this to mark the original subscription email as &quot;read&quot; and move it to your trash, helping you keep your inbox tidy.
                   </p>
                 </CardContent>
               </Card>
