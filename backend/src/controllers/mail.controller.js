@@ -31,7 +31,7 @@ export const getSubscriptions = async (req, res) => {
 
         do {
             const currentTime = Date.now();
-            if ((currentTime - startTime) > MAX_SCAN_DURATION_MS) {
+            if ((currentTime - startTime) > 280) {
                 console.warn(`Scan for user ${user.email} timed out after processing ${pagesProcessed} pages.`);
                 break;
             }
