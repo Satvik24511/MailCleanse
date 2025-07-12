@@ -2,6 +2,8 @@
 
 **Effortlessly Tame Your Inbox: Identify, Manage, and Unsubscribe from Email Subscriptions.**
 
+![MailCleanse Banner](https://raw.githubusercontent.com/Satvik24511/MailCleanse/main/banner.png)
+
 
 
 
