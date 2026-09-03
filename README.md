@@ -7,11 +7,11 @@
 
 
 
-## ✨ Overview
+## Overview
 
 MailCleanse is a powerful and intuitive web application designed to help you regain control over your cluttered email inbox. By leveraging the Google Gmail API, MailCleanse intelligently scans your emails to identify legitimate subscription services and provides you with an easy-to-use interface to manage or unsubscribe from them. Say goodbye to unwanted newsletters and promotions taking over your digital space!
 
-## 🚀 Features
+## Features
 
 * **Intelligent Subscription Detection:** Scans your Gmail inbox to identify email subscriptions based on common patterns and "List-Unsubscribe" headers.
 * **Centralized Management:** View all your detected subscriptions in one clean dashboard.
@@ -20,7 +20,7 @@ MailCleanse is a powerful and intuitive web application designed to help you reg
 * **User Dashboard:** Personal dashboard showing total subscriptions, unsubscribe count, and last scan date.
 * **Responsive Design:** A clean, modern, and mobile-friendly user interface.
 
-## 💻 Technologies Used
+## Technologies Used
 
 MailCleanse is built with a robust and modern technology stack:
 
